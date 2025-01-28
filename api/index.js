@@ -26,7 +26,7 @@ const connectDB = async () => {
       process.exit(1);
     }
   };
-// Initialize Express app
+// Initialize Express 
 connectDB();
 
 // Middleware to parse JSON requests
