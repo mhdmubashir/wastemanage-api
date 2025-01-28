@@ -4,8 +4,14 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import bodyParser from 'body-parser';
-
+import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
 dotenv.config();
+const app = express();
+
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -21,7 +27,6 @@ const connectDB = async () => {
     }
   };
 // Initialize Express app
-const app = express();
 connectDB();
 
 // Middleware to parse JSON requests
@@ -116,6 +121,30 @@ app.post('/api/auth/signup', async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 });
+//CHAT
+// Fetch Users
+app.get("/api/users/:id", authenticate, async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.params.id } });
+    res.json(users);
+  } catch (error) {
+    console.error("Fetch users error:", error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+// Socket.IO for chat
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("sendMessage", ({ senderId, receiverId, message }) => {
+    io.to(receiverId).emit("receiveMessage", { senderId, message });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
 
 // Login route
 app.post('/api/auth/login', async (req, res) => {
@@ -168,6 +197,16 @@ app.post('/api/pickups', authenticate, async (req, res) => {
   });
 
 
+  app.get('/api/users/all',async (req,res)=>{
+    try {
+      const users = await User.find();
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: 'Server error' });
+    }
+  });
+
   //show all pickups
   app.get('/api/pickups/all', async (req, res) => {
     try {
@@ -204,6 +243,8 @@ app.get('/api/pickups', authenticate, async (req, res) => {
       res.status(500).json({ msg: 'Server error' });
     }
   });
+
+
   
 //   // Update a pickup
 //   app.put('/api/pickups/:id', authenticate, async (req, res) => {
