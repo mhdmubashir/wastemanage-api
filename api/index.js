@@ -123,7 +123,7 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 //CHAT
 // Fetch Users
-app.get("/api/users/:id", authenticate, async (req, res) => {
+app.get("/api/users/:id", async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.params.id } });
     res.json(users);
