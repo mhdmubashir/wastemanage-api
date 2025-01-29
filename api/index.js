@@ -11,7 +11,13 @@ dotenv.config();
 const app = express();
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: {
+    origin: "*",  // Make sure this matches the URL you're connecting from in your Flutter app
+    methods: ["GET", "POST"]
+  }
+});
+
 
 // Connect to MongoDB
 const connectDB = async () => {
