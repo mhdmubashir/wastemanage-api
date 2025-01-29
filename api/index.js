@@ -147,32 +147,36 @@ io.on("connection", (socket) => {
 
 
 // Login route
+// Login route
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    // Compare password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
 
-    // Generate JWT token
     const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET || '', { expiresIn: '1h' });
 
-    res.json({ token });
+    res.json({ 
+      token,
+      userId: user.id,  // Return user ID with token
+      name: user.name   // Optionally return the user's name
+    });
+
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ msg: 'Server error' });
   }
 });
+
 
 
 //Pickup
