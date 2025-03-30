@@ -515,16 +515,28 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.get('/api/products/category/:categoryId', async (req, res) => {
   try {
+    // Fetch category details first
+    const category = await Category.findById(req.params.categoryId).select('categoryName');
+
+    if (!category) {
+      return res.status(404).json(
+        formatResponse('error', 'Category not found', 404, 'Invalid Category', null)
+      );
+    }
+
+    // Fetch products for the category
     const products = await Product.find({ 
       category: req.params.categoryId, 
       status: 'Available' 
     }).populate('category', 'categoryName icon');
 
-    if (products.length === 0) {
-      return res.json(formatResponse('success', 'No products found', 200, 'No Products Available', []));
-    }
+    const categoryName = category.categoryName; // Extract category name
 
-    const categoryName = products[0].category.categoryName; // Extract category name
+    if (products.length === 0) {
+      return res.json(
+        formatResponse('success', `No products found in ${categoryName}`, 200, `No Products Available in ${categoryName}`, [])
+      );
+    }
 
     res.json(
       formatResponse('success', `Category ${categoryName} retrieved`, 200, `Category ${categoryName} List`, products)
@@ -535,6 +547,7 @@ app.get('/api/products/category/:categoryId', async (req, res) => {
     );
   }
 });
+
 
 
 app.put('/api/products/:id', authenticate, async (req, res) => {
