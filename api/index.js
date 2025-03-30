@@ -519,8 +519,15 @@ app.get('/api/products/category/:categoryId', async (req, res) => {
       category: req.params.categoryId, 
       status: 'Available' 
     }).populate('category', 'categoryName icon');
+
+    if (products.length === 0) {
+      return res.json(formatResponse('success', 'No products found', 200, 'No Products Available', []));
+    }
+
+    const categoryName = products[0].category.categoryName; // Extract category name
+
     res.json(
-      formatResponse('success', 'Category products retrieved', 200, 'Category Product List', products)
+      formatResponse('success', `Category ${categoryName} retrieved`, 200, `Category ${categoryName} List`, products)
     );
   } catch (error) {
     res.status(500).json(
@@ -528,6 +535,7 @@ app.get('/api/products/category/:categoryId', async (req, res) => {
     );
   }
 });
+
 
 app.put('/api/products/:id', authenticate, async (req, res) => {
   try {
